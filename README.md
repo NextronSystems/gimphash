@@ -27,6 +27,4 @@ Calculation
 Feedback
 --------
 
-Alternative to the step 2 iv: identify the filepath of the main module and use this to exclude packages that are part of the built project. 
-
-Feedback on whether this might be better than the current whitelist approach is appreciated.
+Alternative to the step 2 iv: identify the filepath of the main module and use this to exclude packages that are part of the built project. Feedback on whether this might be better than the current whitelist approach is appreciated.
