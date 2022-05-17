@@ -1,6 +1,6 @@
 # gimphash
 
-gimphash is a proposed method to calculate an [imphash](https://www.mandiant.com/resources/tracking-malware-import-hashing) equivalent for [Go](https://go.dev/) binaries.
+gimphash is a proposed method to calculate an [imphash](https://www.mandiant.com/resources/tracking-malware-import-hashing) equivalent for [Go](https://go.dev/) binaries. It's name stands for **G**o-**imp**ort-**hash**. 
 
 Golang binaries contain their dependencies as part of the executable. These dependencies include both standard library packages and third party dependencies and can be used, analogous to a classical imphash, to identify a Golang project.
 
