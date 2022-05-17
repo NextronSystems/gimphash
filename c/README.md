@@ -2,12 +2,9 @@ Build
 -----
 
 The C version currently depends on libyara (for PE parsing) and OpenSSL
-(for SHA256 calculation).
+(for SHA256 calculation). `pkg-config` is used to locate header files and static libraries.
 
-Compile using:
-
-`CFLAGS=-I<path/to/yarasource>/libyara/include -I<path/to/opensslinstall>/include`
-`LDFLAGS=<path/to/opensslinstall>/lib64/libcrypto.a <path/to/yarainstall>/lib/libyara.a`
+Run `make` to compile.
 
 Restrictions
 ------------
