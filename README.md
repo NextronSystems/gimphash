@@ -27,7 +27,7 @@ Calculation
 Feedback
 --------
 
-This specification and the related code are a draft. Please use the "issues" 
+This specification and the related code are a draft. Please use the [Discussions](https://github.com/NextronSystems/gimphash/discussions) section for comments or feedback. 
 
 Step 2 IV
 =========
