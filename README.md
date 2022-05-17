@@ -23,6 +23,15 @@ The dependencies can be listed using the [pclntab](https://go.dev/src/debug/gosy
 3. Sort the resulting package names (alphabetically) 
 4. Calculate the SHA-256 hash over the concatenated names (no delimiter)
 
+## Proof of Concept Implementations
+
+This repository contains proof-of-concept code in the following languages:
+
+- C
+- Go
+
+The [release](https://github.com/NextronSystems/gimphash/releases) section contains prebuilt binaries for Windows and Linux. 
+
 ## Feedback
 
 This specification and the related code are a draft. Please use the [Discussions](https://github.com/NextronSystems/gimphash/discussions) section for comments or feedback. 
