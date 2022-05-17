@@ -9,7 +9,7 @@
 // read_file reads a file into a newly allocated buffer.
 // it is the user's responsibility to free that buffer after use.
 void read_file(char* filename, uint8_t** data, size_t *data_size) {
-   FILE* fd = fopen(filename, "r");
+   FILE* fd = fopen(filename, "rb");
    fseek(fd, 0, SEEK_END);
    *data_size = ftell(fd);
    fseek(fd, 0, SEEK_SET);
