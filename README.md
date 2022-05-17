@@ -36,11 +36,13 @@ The [release](https://github.com/NextronSystems/gimphash/releases) section conta
 
 This specification and the related code are a draft. Please use the [Discussions](https://github.com/NextronSystems/gimphash/discussions) section for comments or feedback. 
 
-### Step 2 IV
+### Alternative Specifications
+
+#### Step 2 IV
 
 As an alternative to the step 2 iv, we could identify the filepath of the main module and use this to exclude packages that are part of the built project. Feedback on whether this might be better than the current whitelist approach is appreciated.
 
-### Step 3
+#### Step 3
 
 Alternatively we could skip sorting the package names. (see this [comment](https://twitter.com/invisig0th/status/1526207532741664769) on Twitter)
 
