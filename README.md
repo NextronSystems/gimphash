@@ -13,7 +13,7 @@ The dependencies can be listed using the [pclntab](https://go.dev/src/debug/gosy
     1. Ignore functions starting with `go.` or `type.` (compile artefacts, runtime internals)
     2. Ignore functions starting with `internal/`  or `vendor/` ('vendoring' of the standard library)
     3. Find the last `/` in the function name. If no `/` is found, use the start instead. Starting from that position, find the next `.`.
-       Discard the `.` everything after it. (e.g. `golang.org/x/sys/windows.CloseHandle` becomes `golang.org/x/sys/windows`, `main.init` becomes `main`)
+       Discard the `.` and everything after it. (e.g. `golang.org/x/sys/windows.CloseHandle` becomes `golang.org/x/sys/windows`, `main.init` becomes `main`)
     4. If the part before the first `/` contains a `.` and is NOT in the following list, ignore the function name: (ignoring private repositories; often serve as source code instead of 'imports' that we'd like to hash here)
         - `golang.org`
         - `github.com`
