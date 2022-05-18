@@ -12,6 +12,11 @@ import (
 )
 
 func main() {
+	if len(os.Args) == 1 {
+		fmt.Printf("Usage: %s executable (executable ...)\n", os.Args[0])
+		return
+	}
+
 	for _, file := range os.Args[1:] {
 		f, err := gore.Open(file)
 		if err != nil {
