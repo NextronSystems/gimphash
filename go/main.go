@@ -37,7 +37,7 @@ func main() {
 			// Do gimphash exclusions, as described in README.md
 			pathend := strings.LastIndex(pkg, "/")
 			if pathend < 0 {
-				continue
+				pathend = 0
 			}
 
 			if i := strings.Index(pkg[pathend:], "."); i != -1 {

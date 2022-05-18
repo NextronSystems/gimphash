@@ -276,9 +276,6 @@ char** parse_pcln_tab(uint8_t* pcln_tab_data, size_t pcln_max_tab_size, size_t* 
          }
          namelength--;
       }
-      if (namelength == 0) {
-         continue;
-      }
       while (name[namelength] != '.' && name[namelength] != '\0') {
          namelength++;
       }
