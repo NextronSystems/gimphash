@@ -35,6 +35,14 @@ func main() {
 			pkg := function.Name
 
 			// Do gimphash exclusions, as described in README.md
+			if strings.HasPrefix(pkg, "go.") || strings.HasPrefix(pkg, "type.") {
+				continue
+			}
+
+			if strings.HasPrefix(pkg, "internal/") || strings.HasPrefix(pkg, "vendor/") {
+				continue
+			}
+
 			pathend := strings.LastIndex(pkg, "/")
 			if pathend < 0 {
 				pathend = 0
@@ -43,16 +51,6 @@ func main() {
 			if i := strings.Index(pkg[pathend:], "."); i != -1 {
 				pkg = pkg[:pathend+i]
 			} else {
-				continue
-			}
-
-			if strings.HasPrefix(pkg, "go.") || strings.HasPrefix(pkg, "type.") {
-				continue
-			}
-			if strings.HasPrefix(pkg, "internal/") {
-				continue
-			}
-			if strings.HasPrefix(pkg, "vendor/") {
 				continue
 			}
 
