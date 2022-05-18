@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
-	"sort"
 	"strings"
 
 	"github.com/goretk/gore"
@@ -72,8 +71,7 @@ func main() {
 			uniquePkgNames[pkg] = struct{}{}
 			pkgNames = append(pkgNames, pkg)
 		}
-		// Sort and calculated hash
-		sort.Strings(pkgNames)
+		// Calculate hash
 		hash := sha256.New()
 		for _, pack := range pkgNames {
 			//fmt.Println("Package:", pack)

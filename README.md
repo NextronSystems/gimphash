@@ -21,8 +21,8 @@ The dependencies can be listed using the [pclntab](https://go.dev/src/debug/gosy
         - `gopkg.in`
         - `google.golang.org`
         - `cloud.google.com`
-3. Sort the resulting package names (alphabetically) 
-4. Calculate the SHA-256 hash over the concatenated names (no delimiter)
+    5. Discard the function name if it was already encountered
+3. Calculate the SHA-256 hash over the concatenated names (no delimiter)
 
 ## Proof of Concept Implementations
 
@@ -45,5 +45,6 @@ As an alternative to the step 2 iv, we could identify the filepath of the main m
 
 #### Step 3
 
-Alternatively we could skip sorting the package names. (see this [comment](https://twitter.com/invisig0th/status/1526207532741664769) on Twitter)
-
+We could sort the package names before calculating the hash. However, since the Golang linker seems to generate the pclntab deterministically,
+this is apparently not necessary to have a stable hash. Also, since import order can affect the order in the pclntab, the hash is more specific
+when not ordered.

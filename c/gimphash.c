@@ -342,11 +342,6 @@ char** parse_pcln_tab(uint8_t* pcln_tab_data, size_t pcln_max_tab_size, size_t* 
    return names;
 }
 
-int pstrcmp( const void* a, const void* b )
-{
-  return strcmp( *(const char**)a, *(const char**)b );
-}
-
 #define SHA256_LEN 32
 
 int main(int argc, char** argv) {
@@ -395,9 +390,6 @@ int main(int argc, char** argv) {
       }
 
       free(data);
-
-      // Sort packages
-      qsort( names, name_count, sizeof((char*)0), pstrcmp );
 
       // Calculate hash
       SHA256_CTX ctx;
