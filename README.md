@@ -9,19 +9,23 @@ The dependencies can be listed using the [pclntab](https://go.dev/src/debug/gosy
 ## Calculation
 
 1. Locate the pclntab within a Golang binary
-2. Enumerate golang functions using the functab within the pclntab:
-    1. Ignore functions starting with `go.` or `type.` (compile artefacts, runtime internals)
-    2. Ignore functions starting with `internal/`  or `vendor/` ('vendoring' of the standard library)
-    3. Find the last `/` in the function name. If no `/` is found, use the start instead. Starting from that position, find the next `.`.
+2. Enumerate golang functions using the functab within the pclntab and iterate over their names:
+    1. Ignore function names starting with `go.` or `type.` (compile artefacts, runtime internals)
+    2. If a function name contains `vendor/`, discard that substring and everything before it
+       (e.g. transform `vendor/golang.org/x/text` to `golang.org/x/text`)
+    3. Ignore function names containing `internal/`
+    4. Find the last `/` in the function name. If no `/` is found, use the start instead. Starting from that position, find the next `.`.
        Discard the `.` and everything after it. (e.g. `golang.org/x/sys/windows.CloseHandle` becomes `golang.org/x/sys/windows`, `main.init` becomes `main`)
-    4. If the part before the first `/` contains a `.` and is NOT in the following list, ignore the function name: (ignoring private repositories; often serve as source code instead of 'imports' that we'd like to hash here)
+       If no `.` is found, ignore the full function name.
+    5. If the function name's substring before the first `/` contains a `.` and is NOT in the following list, ignore the function name: (ignoring private repositories; often serve as source code instead of 'imports' that we'd like to hash here)
         - `golang.org`
         - `github.com`
         - `gitlab.com`
         - `gopkg.in`
         - `google.golang.org`
         - `cloud.google.com`
-    5. Discard the function name if it was already encountered
+    6. Discard the function name if it was already encountered
+    7. Store the resulting name, if it was not ignored so far, in an ordered list
 3. Calculate the SHA-256 hash over the concatenated names (no delimiter)
 
 ## Proof of Concept Implementations

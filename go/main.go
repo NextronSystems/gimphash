@@ -38,7 +38,11 @@ func main() {
 				continue
 			}
 
-			if strings.HasPrefix(pkg, "internal/") || strings.HasPrefix(pkg, "vendor/") {
+			if i := strings.LastIndex(pkg, "vendor/"); i != -1 {
+				pkg = pkg[i:]
+			}
+
+			if strings.Contains(pkg, "internal/") {
 				continue
 			}
 

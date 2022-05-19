@@ -266,7 +266,16 @@ char** parse_pcln_tab(uint8_t* pcln_tab_data, size_t pcln_max_tab_size, size_t* 
       if (strncmp(name, "go.", 3) == 0 || strncmp(name, "type.", 5) == 0) {
          continue;
       }
-      if (strncmp(name, "internal/", 9) == 0 || strncmp(name, "vendor/", 7) == 0) {
+
+
+      char* vendor_index = 0;
+      while ((vendor_index = strstr(name, "vendor/")) != 0) {
+         // Remove vendor/ and everything before it
+         namelength -= (vendor_index - name) + 7;
+         name = vendor_index + 7;
+      }
+
+      if (strstr(name, "internal/") != 0) {
          continue;
       }
 
