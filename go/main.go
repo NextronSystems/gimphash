@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"unicode"
 
 	"github.com/goretk/gore"
 )
@@ -19,15 +20,14 @@ func main() {
 	for _, file := range os.Args[1:] {
 		f, err := gore.Open(file)
 		if err != nil {
-			fmt.Printf("%s: %v\n", file, err)
+			fmt.Fprintf(os.Stderr, "%s: %v\n", file, err)
 			continue
 		}
 		tab, err := f.PCLNTab()
 		if err != nil {
-			fmt.Printf("%s: %v\n", file, err)
+			fmt.Fprintf(os.Stderr, "%s: %v\n", file, err)
 			continue
 		}
-		var uniquePkgNames = map[string]struct{}{}
 		var pkgNames []string
 
 		for _, function := range tab.Funcs {
@@ -46,33 +46,42 @@ func main() {
 				continue
 			}
 
-			pathend := strings.LastIndex(pkg, "/")
-			if pathend < 0 {
-				pathend = 0
-			}
-
-			if i := strings.Index(pkg[pathend:], "."); i != -1 {
-				pkg = pkg[:pathend+i]
-			} else {
-				continue
-			}
-
-			firstSeparator := strings.Index(pkg, "/")
-			if firstSeparator > 0 {
-				urlBase := pkg[:firstSeparator]
-				if strings.Index(urlBase, ".") >= 0 {
-					switch urlBase {
-					case "golang.org", "github.com", "gitlab.com", "gopkg.in", "google.golang.org", "cloud.google.com":
-					default:
-						continue // Ignore packages from other URLs
-					}
+			var isBlacklisted bool
+			for _, blacklisted := range []string{
+				"runtime",
+				"sync",
+				"syscall",
+				"type",
+				"time",
+				"unicode",
+				"reflect",
+				"strconv",
+			} {
+				if strings.HasPrefix(pkg, blacklisted) {
+					isBlacklisted = true
+					break
 				}
 			}
-
-			if _, alreadyExists := uniquePkgNames[pkg]; alreadyExists {
+			if isBlacklisted {
 				continue
 			}
-			uniquePkgNames[pkg] = struct{}{}
+
+			lastSlash := strings.LastIndex(pkg, "/")
+			packageFunctionName := pkg[lastSlash+1:]
+
+			nextDot := strings.Index(packageFunctionName, ".")
+			functionName := packageFunctionName[nextDot+1:]
+
+			if firstAlphanumericCharLowerCase(functionName) {
+				continue
+			}
+
+			nextDot = strings.Index(functionName, ".")
+			functionName = functionName[nextDot+1:]
+			if firstAlphanumericCharLowerCase(functionName) {
+				continue
+			}
+
 			pkgNames = append(pkgNames, pkg)
 		}
 		// Calculate hash
@@ -83,4 +92,16 @@ func main() {
 		}
 		fmt.Printf("%s %s\n", hex.EncodeToString(hash.Sum(nil)), file)
 	}
+}
+
+func firstAlphanumericCharLowerCase(s string) bool {
+	for _, c := range s {
+		if unicode.IsLower(c) {
+			return true
+		}
+		if unicode.IsUpper(c) || unicode.IsNumber(c) {
+			return false
+		}
+	}
+	return false
 }
