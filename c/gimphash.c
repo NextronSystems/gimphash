@@ -195,6 +195,46 @@ size_t strlen_safe( const char *str, size_t strsz ) {
    return strlength;
 }
 
+// This function extracts the start index of the basename from a function name, as described in step 5.1.
+int extract_basename(char* name, int namelength) {
+    // First backtrack to the last /
+    int last_slash_index = namelength - 1;
+    while (last_slash_index > 0) {
+        if (name[last_slash_index] == '/') {
+            break;
+        }
+        last_slash_index--;
+    }
+    // Then track forward to the first .
+    int next_dot = last_slash_index;
+    while (next_dot < namelength) {
+        if (name[next_dot] == '.') {
+            break;
+        }
+        next_dot++;
+    }
+    int basename_start;
+    if (next_dot == namelength) {
+        basename_start = last_slash_index;
+    } else {
+        basename_start = next_dot + 1;
+    }
+    return basename_start;
+}
+
+bool first_alphanumeric_char_is_lowercase(char* str) {
+    while(*str != '\0') {
+        if ('a' <= *str && *str <= 'z') {
+            return true;
+        }
+        if (('A' <= *str && *str <= 'Z') || ('0' <= *str && *str <= '9')) {
+            return false;
+        }
+        str++;
+    }
+    return false;
+}
+
 // parse_pcln_tab parses a given pclntab and returns a list of all packages that were found that are not excluded by gimphash criteria (see README.md in the top directory).
 char** parse_pcln_tab(uint8_t* pcln_tab_data, size_t pcln_max_tab_size, size_t* name_count) {
    *name_count = 0;
@@ -279,44 +319,32 @@ char** parse_pcln_tab(uint8_t* pcln_tab_data, size_t pcln_max_tab_size, size_t* 
          continue;
       }
 
-      while (namelength > 0) {
-         if (name[namelength] == '/') {
-            break;
-         }
-         namelength--;
-      }
-      while (name[namelength] != '.' && name[namelength] != '\0') {
-         namelength++;
-      }
-
-      if (name[namelength] == '\0') {
+      if (strncmp(name, "runtime", 7) == 0 ||
+         strncmp(name, "sync", 4) == 0 ||
+         strncmp(name, "syscall", 7) == 0 ||
+         strncmp(name, "type", 4) == 0 ||
+         strncmp(name, "time", 4) == 0 ||
+         strncmp(name, "unicode", 7) == 0 ||
+         strncmp(name, "reflect", 7) == 0 ||
+         strncmp(name, "strconv", 7) == 0) {
          continue;
       }
 
-      size_t first_separator = 0;
+      int basename_index = extract_basename(name, namelength);
 
-      while (first_separator < namelength) {
-         if (name[first_separator] == '/') {
-            break;
-         }
-         first_separator++;
-      }
-      if (first_separator != 0) {
-         bool has_dot = false;
-         for (size_t i = 0; i < first_separator; i++) {
-            if (name[i] == '.') {
-               has_dot = true;
-               break;
-            }
-         }
-         if (has_dot) {
-            if (strncmp(name, "golang.org/", first_separator+1) != 0 && strncmp(name, "github.com/", first_separator+1) != 0 && strncmp(name, "gitlab.com/", first_separator+1) != 0 && strncmp(name, "gopkg.in/", first_separator+1) != 0 && strncmp(name, "google.golang.org/", first_separator+1) != 0 && strncmp(name, "cloud.google.com/", first_separator+1) != 0) {
-               continue;
-            }
-         }
+      char* basename = name + basename_index;
+      char* basenamelength = namelength - basename_index;
+
+      if (first_alphanumeric_char_is_lowercase(basename)) {
+         continue;
       }
 
-      // Package qualifies - allocate a new buffer to add to names
+      char* basename_from_first_dot = strstr(basename, ".");
+      if (basename_from_first_dot != 0 && first_alphanumeric_char_is_lowercase(basename_from_first_dot)) {
+         continue;
+      }
+
+      // Function qualifies - allocate a new buffer to add to names
       char* nameBuffer = malloc(namelength + 1);
       if (nameBuffer == 0) {
          free(names);
@@ -325,19 +353,6 @@ char** parse_pcln_tab(uint8_t* pcln_tab_data, size_t pcln_max_tab_size, size_t* 
       }
       memcpy(nameBuffer, name, namelength);
       nameBuffer[namelength] = '\0';
-
-      // Check if package already exists
-      bool nameExists = false;
-      for (size_t i = 0; i < *name_count; i++) {
-         if (strcmp(names[i], nameBuffer) == 0) {
-            nameExists = true;
-            break;
-         }
-      }
-      if (nameExists) {
-         free(nameBuffer);
-         continue;
-      }
 
       // realloc names, if required, and add new element
       if (names_capacity == *name_count) {
@@ -373,7 +388,7 @@ int main(int argc, char** argv) {
       PIMAGE_NT_HEADERS32 pe_header = pe_get_header(data, data_size);
 
       if (pe_header == NULL) {
-         printf("Could not parse PE header in file %s\n", argv[file_index]);
+         fprintf(stderr, "Could not parse PE header in file %s\n", argv[file_index]);
          free(data);
          continue;
       }
@@ -384,7 +399,7 @@ int main(int argc, char** argv) {
       find_pe_pclntab(data, data_size, &pclntab, &pclntab_size);
 
       if (pclntab == 0) {
-         printf("Could not find pclntab in %s\n", argv[file_index]);
+         fprintf(stderr, "Could not find pclntab in %s\n", argv[file_index]);
          free(data);
          continue;
       }
@@ -394,7 +409,7 @@ int main(int argc, char** argv) {
       char** names = parse_pcln_tab(pclntab, pclntab_size, &name_count);
 
       if (names == 0) {
-         printf("Could not parse pclntab in %s\n", argv[file_index]);
+         fprintf(stderr, "Could not parse pclntab in %s\n", argv[file_index]);
          continue;
       }
 
@@ -405,7 +420,7 @@ int main(int argc, char** argv) {
       SHA256_Init(&ctx);
 
       for (size_t i = 0; i < name_count; i++) {
-         //printf("Package: %s\n", names[i]);
+         //printf("Function: %s\n", names[i]);
          SHA256_Update(&ctx, names[i], strlen(names[i]));
          free(names[i]);
       }
@@ -428,6 +443,5 @@ int main(int argc, char** argv) {
       printf("%s %s\n", digest_ascii, argv[file_index]);
       free(digest_ascii);
   }
- 
    return 0;
 }

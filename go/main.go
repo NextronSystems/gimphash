@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"unicode"
 
 	"github.com/goretk/gore"
 )
@@ -19,68 +20,88 @@ func main() {
 	for _, file := range os.Args[1:] {
 		f, err := gore.Open(file)
 		if err != nil {
-			fmt.Printf("%s: %v\n", file, err)
+			fmt.Fprintf(os.Stderr, "%s: %v\n", file, err)
 			continue
 		}
 		tab, err := f.PCLNTab()
 		if err != nil {
-			fmt.Printf("%s: %v\n", file, err)
+			fmt.Fprintf(os.Stderr, "%s: %v\n", file, err)
 			continue
 		}
-		var uniquePkgNames = map[string]struct{}{}
-		var pkgNames []string
+		var functionNames []string
 
 		for _, function := range tab.Funcs {
-			pkg := function.Name
+			functionName := function.Name
 
 			// Do gimphash exclusions, as described in README.md
-			if strings.HasPrefix(pkg, "go.") || strings.HasPrefix(pkg, "type.") {
+			if strings.HasPrefix(functionName, "go.") || strings.HasPrefix(functionName, "type.") {
 				continue
 			}
 
-			if i := strings.LastIndex(pkg, "vendor/"); i != -1 {
-				pkg = pkg[i:]
+			if i := strings.LastIndex(functionName, "vendor/"); i != -1 {
+				functionName = functionName[i+len("vendor/"):]
 			}
 
-			if strings.Contains(pkg, "internal/") {
+			if strings.Contains(functionName, "internal/") {
 				continue
 			}
 
-			pathend := strings.LastIndex(pkg, "/")
-			if pathend < 0 {
-				pathend = 0
-			}
-
-			if i := strings.Index(pkg[pathend:], "."); i != -1 {
-				pkg = pkg[:pathend+i]
-			} else {
-				continue
-			}
-
-			firstSeparator := strings.Index(pkg, "/")
-			if firstSeparator > 0 {
-				urlBase := pkg[:firstSeparator]
-				if strings.Index(urlBase, ".") >= 0 {
-					switch urlBase {
-					case "golang.org", "github.com", "gitlab.com", "gopkg.in", "google.golang.org", "cloud.google.com":
-					default:
-						continue // Ignore packages from other URLs
-					}
+			var isBlacklisted bool
+			for _, blacklisted := range []string{
+				"runtime",
+				"sync",
+				"syscall",
+				"type",
+				"time",
+				"unicode",
+				"reflect",
+				"strconv",
+			} {
+				if strings.HasPrefix(functionName, blacklisted) {
+					isBlacklisted = true
+					break
 				}
 			}
-
-			if _, alreadyExists := uniquePkgNames[pkg]; alreadyExists {
+			if isBlacklisted {
 				continue
 			}
-			uniquePkgNames[pkg] = struct{}{}
-			pkgNames = append(pkgNames, pkg)
+
+			lastSlash := strings.LastIndex(functionName, "/")
+			packageFunctionName := functionName[lastSlash+1:]
+
+			nextDot := strings.Index(packageFunctionName, ".")
+			baseFunctionName := packageFunctionName[nextDot+1:]
+
+			if firstAlphanumericCharLowerCase(baseFunctionName) {
+				continue
+			}
+
+			nextDot = strings.Index(baseFunctionName, ".")
+			baseFunctionName = baseFunctionName[nextDot+1:]
+			if firstAlphanumericCharLowerCase(baseFunctionName) {
+				continue
+			}
+
+			functionNames = append(functionNames, functionName)
 		}
 		// Calculate hash
 		hash := sha256.New()
-		for _, pack := range pkgNames {
-			//fmt.Println("Package:", pack)
-			hash.Write([]byte(pack))
+		for _, functionName := range functionNames {
+			fmt.Println("Function:", functionName)
+			hash.Write([]byte(functionName))
 		}
 		fmt.Printf("%s %s\n", hex.EncodeToString(hash.Sum(nil)), file)
 	}
+}
+
+func firstAlphanumericCharLowerCase(s string) bool {
+	for _, c := range s {
+		if unicode.IsLower(c) {
+			return true
+		}
+		if unicode.IsUpper(c) || unicode.IsNumber(c) {
+			return false
+		}
+	}
+	return false
 }
