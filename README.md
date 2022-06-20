@@ -14,18 +14,21 @@ The dependencies can be listed using the [pclntab](https://go.dev/src/debug/gosy
     2. If a function name contains `vendor/`, discard that substring and everything before it
        (e.g. transform `vendor/golang.org/x/text` to `golang.org/x/text`)
     3. Ignore function names containing `internal/`
-    4. Find the last `/` in the function name. If no `/` is found, use the start instead. Starting from that position, find the next `.`.
-       Discard the `.` and everything after it. (e.g. `golang.org/x/sys/windows.CloseHandle` becomes `golang.org/x/sys/windows`, `main.init` becomes `main`)
-       If no `.` is found, ignore the full function name.
-    5. If the function name's substring before the first `/` contains a `.` and is NOT in the following list, ignore the function name: (ignoring private repositories; often serve as source code instead of 'imports' that we'd like to hash here)
-        - `golang.org`
-        - `github.com`
-        - `gitlab.com`
-        - `gopkg.in`
-        - `google.golang.org`
-        - `cloud.google.com`
-    6. Discard the function name if it was already encountered
-    7. Store the resulting name, if it was not ignored so far, in an ordered list
+    4. Ignore function names that start with one of the following standard library packages:
+        - `runtime`
+        - `sync`
+        - `syscall`
+        - `type`
+        - `time`
+        - `unicode`
+        - `reflect`
+        - `strconv`
+    5. Ignore function names that are not public or where their receivers are not public. In order to do so:
+       1. Find the last `/` in the function name. If no `/` is found, use the start instead. Starting from that position, find the next `.`.
+       2. Extract the *base function name* as everything after that `.`. If no `.` was found, use everything after the `/` index calculated in the previous step.
+       3. Ignore the function if the first alphanumeric character in the base function name is a lower case character.
+       4. If another `.` exists within the base function name, ignore the function if the first alphanumeric character after that `.` is a lower case character.
+    6. Store the resulting name, if it was not ignored so far, in an ordered list
 3. Calculate the SHA-256 hash over the concatenated names (no delimiter)
 
 ## Proof of Concept Implementations
@@ -43,12 +46,7 @@ This specification and the related code are a draft. Please use the [Discussions
 
 ### Alternative Specifications
 
-#### Step 2 IV
+#### Step 5
 
-As an alternative to the step 2 iv, we could identify the filepath of the main module and use this to exclude packages that are part of the built project. Feedback on whether this might be better than the current whitelist approach is appreciated.
-
-#### Step 3
-
-We could sort the package names before calculating the hash. However, since the Golang linker seems to generate the pclntab deterministically,
-this is apparently not necessary to have a stable hash. Also, since import order can affect the order in the pclntab, the hash is more specific
-when not ordered.
+As an alternative to the step 5, it is possible to only extract the package name for the hash. This results in a less specific,
+but possibly more stable, gimphash.
