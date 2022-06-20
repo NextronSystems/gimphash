@@ -28,21 +28,21 @@ func main() {
 			fmt.Fprintf(os.Stderr, "%s: %v\n", file, err)
 			continue
 		}
-		var pkgNames []string
+		var functionNames []string
 
 		for _, function := range tab.Funcs {
-			pkg := function.Name
+			functionName := function.Name
 
 			// Do gimphash exclusions, as described in README.md
-			if strings.HasPrefix(pkg, "go.") || strings.HasPrefix(pkg, "type.") {
+			if strings.HasPrefix(functionName, "go.") || strings.HasPrefix(functionName, "type.") {
 				continue
 			}
 
-			if i := strings.LastIndex(pkg, "vendor/"); i != -1 {
-				pkg = pkg[i:]
+			if i := strings.LastIndex(functionName, "vendor/"); i != -1 {
+				functionName = functionName[i+len("vendor/"):]
 			}
 
-			if strings.Contains(pkg, "internal/") {
+			if strings.Contains(functionName, "internal/") {
 				continue
 			}
 
@@ -57,7 +57,7 @@ func main() {
 				"reflect",
 				"strconv",
 			} {
-				if strings.HasPrefix(pkg, blacklisted) {
+				if strings.HasPrefix(functionName, blacklisted) {
 					isBlacklisted = true
 					break
 				}
@@ -66,29 +66,29 @@ func main() {
 				continue
 			}
 
-			lastSlash := strings.LastIndex(pkg, "/")
-			packageFunctionName := pkg[lastSlash+1:]
+			lastSlash := strings.LastIndex(functionName, "/")
+			packageFunctionName := functionName[lastSlash+1:]
 
 			nextDot := strings.Index(packageFunctionName, ".")
-			functionName := packageFunctionName[nextDot+1:]
+			baseFunctionName := packageFunctionName[nextDot+1:]
 
-			if firstAlphanumericCharLowerCase(functionName) {
+			if firstAlphanumericCharLowerCase(baseFunctionName) {
 				continue
 			}
 
-			nextDot = strings.Index(functionName, ".")
-			functionName = functionName[nextDot+1:]
-			if firstAlphanumericCharLowerCase(functionName) {
+			nextDot = strings.Index(baseFunctionName, ".")
+			baseFunctionName = baseFunctionName[nextDot+1:]
+			if firstAlphanumericCharLowerCase(baseFunctionName) {
 				continue
 			}
 
-			pkgNames = append(pkgNames, pkg)
+			functionNames = append(functionNames, functionName)
 		}
 		// Calculate hash
 		hash := sha256.New()
-		for _, pack := range pkgNames {
-			//fmt.Println("Package:", pack)
-			hash.Write([]byte(pack))
+		for _, functionName := range functionNames {
+			fmt.Println("Function:", functionName)
+			hash.Write([]byte(functionName))
 		}
 		fmt.Printf("%s %s\n", hex.EncodeToString(hash.Sum(nil)), file)
 	}
