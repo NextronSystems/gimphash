@@ -333,7 +333,6 @@ char** parse_pcln_tab(uint8_t* pcln_tab_data, size_t pcln_max_tab_size, size_t* 
       int basename_index = extract_basename(name, namelength);
 
       char* basename = name + basename_index;
-      char* basenamelength = namelength - basename_index;
 
       if (first_alphanumeric_char_is_lowercase(basename)) {
          continue;
