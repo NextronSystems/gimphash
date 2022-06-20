@@ -87,7 +87,7 @@ func main() {
 		// Calculate hash
 		hash := sha256.New()
 		for _, functionName := range functionNames {
-			fmt.Println("Function:", functionName)
+			//fmt.Println("Function:", functionName)
 			hash.Write([]byte(functionName))
 		}
 		fmt.Printf("%s %s\n", hex.EncodeToString(hash.Sum(nil)), file)
