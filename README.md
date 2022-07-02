@@ -53,3 +53,8 @@ Run the Gimphash calculator on a malware repository
 find /mnt/malware-repo/ -type f -exec ./go_gimphash_linux {} \; 2>/dev/null
 ...
 ```
+
+### Clustering Example
+
+![Screenshot 2022-07-02 at 10 11 38](https://user-images.githubusercontent.com/2851492/176993921-e25e7106-a798-4031-9016-90a097c7e77f.png)
+
