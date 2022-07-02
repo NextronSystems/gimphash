@@ -40,13 +40,16 @@ This repository contains proof-of-concept code in the following languages:
 
 The [release](https://github.com/NextronSystems/gimphash/releases) section contains prebuilt binaries for Windows and Linux. 
 
-## Feedback
+### Usage Examples
 
-This specification and the related code are a draft. Please use the [Discussions](https://github.com/NextronSystems/gimphash/discussions) section for comments or feedback. 
+Run the Gimphash calculator on a single file
+```bash
+./c_gimphash_linux /mnt/malware-repo/Godoh/godoh-windows64.exe
+8200e76e42c4e9cf2bb308d76c017cbdcde5cbbf95e99e02b14d05e7b21505f3 /mnt/mal/Godoh/godoh-windows64.exe
+```
 
-### Alternative Specifications
-
-#### Step 5
-
-As an alternative to the step 5, it is possible to only extract the package name for the hash. This results in a less specific,
-but possibly more stable, gimphash.
+Run the Gimphash calculator on a malware repository
+```bash
+find /mnt/malware-repo/ -type f -exec ./go_gimphash_linux {} \; 2>/dev/null
+...
+```
